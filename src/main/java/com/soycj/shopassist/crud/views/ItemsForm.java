@@ -21,10 +21,11 @@ public class ItemsForm extends javax.swing.JFrame {
         }catch(Exception e)
         {
 
-            JOptionPane.showMessageDialog(this, 
+            JOptionPane.showMessageDialog(null, 
                     "Couldn't connect to database!", 
                     "Error!", JOptionPane.INFORMATION_MESSAGE);
-            this.dispose();
+            
+            System.exit(-1);
         }
     }
     
