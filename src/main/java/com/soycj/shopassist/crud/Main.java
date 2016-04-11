@@ -6,9 +6,10 @@ import com.soycj.shopassist.crud.views.ItemsForm;
  */
 public class Main {
     
-    public static void Main(String [] args)
+    public static void main(String [] args)
     {
         ItemsForm form = new ItemsForm();
+        form.setLocationRelativeTo(null);
         form.setVisible(true);
     }        
 }

@@ -1,6 +1,9 @@
 package com.soycj.shopassist.crud.views;
 import com.soycj.shopassist.crud.DAO.ItemsDAO;
+import com.soycj.shopassist.crud.DAO.exceptions.NonexistentEntityException;
 import com.soycj.shopassist.crud.models.Items;
+import java.awt.event.KeyEvent;
+import java.math.BigDecimal;
 import javax.swing.JOptionPane;
 /**
  *
@@ -17,8 +20,9 @@ public class ItemsForm extends javax.swing.JFrame {
             itemDAO = new ItemsDAO();
         }catch(Exception e)
         {
-            JOptionPane.showInputDialog(this, 
-                    "No se pudo conectar a la base de datos!", 
+
+            JOptionPane.showMessageDialog(this, 
+                    "Couldn't connect to database!", 
                     "Error!", JOptionPane.INFORMATION_MESSAGE);
             this.dispose();
         }
@@ -26,20 +30,130 @@ public class ItemsForm extends javax.swing.JFrame {
     
     private void clearAllFields()
     {
+        txtAddCode.setText("");
+        txtAddDescription.setText("");
+        txtAddName.setText("");
+        txtAddTax.setText("");
+        txtAddUnitPrice.setText("");
+        txtAddPosition.setText("");
+        
+        txtUpdateCode.setText("");
+        txtUpdateDescription.setText("");
+        txtUpdateName.setText("");
+        txtUpdateTax.setText("");
+        txtUpdateUnitPrice.setText("");
+        txtUpdatePosition.setText("");
+        
+        txtDeleteCode.setText("");
+        
+        updateFieldsToggle(false);
     }
 
     private void saveItem()
     {
+        try{
+            item = new Items();
+            item.setCode(txtAddCode.getText());
+            item.setDescription(txtAddDescription.getText());
+            item.setName(txtAddName.getText());
+            item.setPosition(txtAddPosition.getText());
+            item.setUnitPrice(new BigDecimal(txtAddUnitPrice.getText()));
+            item.setTaxRate(new BigDecimal(txtAddTax.getText()));
+
+            itemDAO.create(item);
+
+            JOptionPane.showMessageDialog(this, 
+                        "Item added successfully", 
+                        "Error!", JOptionPane.INFORMATION_MESSAGE);
+            
+            clearAllFields();
+            updateFieldsToggle(false);
+        }
+        catch(Exception e)
+        {
+            JOptionPane.showMessageDialog(this, 
+                    "Couldn't not create item!", 
+                    "Error!", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
     
+    private void updateFieldsToggle(boolean estate)
+    {
+        btnUpdate.setEnabled(estate);
+        txtUpdateDescription.setEditable(estate);
+        txtUpdateName.setEditable(estate);
+        txtUpdateTax.setEditable(estate);
+        txtUpdateUnitPrice.setEditable(estate);
+        txtUpdatePosition.setEditable(estate);
+        
     }
     
     private void updateItem()
     {
+        item.setName(txtUpdateName.getText());
+        item.setDescription(txtUpdateDescription.getText());
+        item.setPosition(txtUpdatePosition.getText());
+        item.setUnitPrice(new BigDecimal(txtUpdateUnitPrice.getText()));
+        item.setTaxRate(new BigDecimal(txtUpdateTax.getText()));
+        
+        try
+        {
+            itemDAO.edit(item);
+            clearAllFields();
+            updateFieldsToggle(false);
+            
+        }catch(Exception e)
+        {
+            JOptionPane.showMessageDialog(this, 
+                    "Couldn't update item!", 
+                    "Error!", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
     
+    public void searchItem()
+    {
+        try
+        {
+            item = itemDAO.findByCode(txtUpdateCode.getText());
+            
+            if(item == null)
+                throw new NonexistentEntityException("Item not found!");
+            
+            updateFieldsToggle(true);
+            
+            txtUpdateDescription.setText(item.getDescription());
+            txtUpdateName.setText(item.getName());
+            txtUpdateTax.setText(item.getTaxRate().toPlainString());
+            txtUpdateUnitPrice.setText(item.getUnitPrice().toPlainString());
+            txtUpdatePosition.setText(item.getPosition());
+        }
+        catch(NonexistentEntityException e)
+        {
+            JOptionPane.showMessageDialog(this, 
+                    e.getMessage(),
+                    "Error!", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
     
     private void deleteItem()
     {
+        try
+        {
+            itemDAO.destroy(
+                    itemDAO.findByCode(txtDeleteCode.getText()).getId()
+            );
+            
+            JOptionPane.showMessageDialog(this, 
+                    "Item deleted successfully.", 
+                    "", JOptionPane.INFORMATION_MESSAGE);
+            clearAllFields();
+            updateFieldsToggle(false);
+        }catch(Exception e)
+        {
+            JOptionPane.showMessageDialog(this, 
+                    "Error deleting item!", 
+                    "Error", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
     
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -96,6 +210,11 @@ public class ItemsForm extends javax.swing.JFrame {
 
         btnSave.setText("Save");
         btnSave.setNextFocusableComponent(btnClear);
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveActionPerformed(evt);
+            }
+        });
 
         btnClear.setText("Clear");
         btnClear.setNextFocusableComponent(txtAddCode);
@@ -196,29 +315,53 @@ public class ItemsForm extends javax.swing.JFrame {
 
         jLabel7.setText("Item Code:");
 
-        txtUpdateCode.setNextFocusableComponent(txtAddName);
+        txtUpdateCode.setNextFocusableComponent(btnSearch);
+        txtUpdateCode.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtUpdateCodeKeyPressed(evt);
+            }
+        });
 
         jLabel8.setText("Name:");
 
-        txtUpdateName.setNextFocusableComponent(txtAddDescription);
+        txtUpdateName.setEditable(false);
+        txtUpdateName.setNextFocusableComponent(txtUpdateDescription);
 
         jLabel9.setText("Description");
 
-        txtUpdateDescription.setNextFocusableComponent(txtAddUnitPrice);
+        txtUpdateDescription.setEditable(false);
+        txtUpdateDescription.setNextFocusableComponent(txtUpdateUnitPrice);
 
         jLabel10.setText("Unit Price:");
 
-        txtUpdateUnitPrice.setNextFocusableComponent(txtAddTax);
+        txtUpdateUnitPrice.setEditable(false);
+        txtUpdateUnitPrice.setNextFocusableComponent(txtUpdateTax);
 
         jLabel11.setText("Tax:");
 
-        txtUpdateTax.setNextFocusableComponent(txtAddPosition);
+        txtUpdateTax.setEditable(false);
+        txtUpdateTax.setNextFocusableComponent(txtUpdatePosition);
 
         jLabel12.setText("Position");
 
+        txtUpdatePosition.setEditable(false);
+        txtUpdatePosition.setNextFocusableComponent(btnUpdate);
+
         btnSearch.setText("Search");
+        btnSearch.setNextFocusableComponent(txtUpdateName);
+        btnSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSearchActionPerformed(evt);
+            }
+        });
 
         btnUpdate.setText("Update");
+        btnUpdate.setEnabled(false);
+        btnUpdate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUpdateActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -228,28 +371,27 @@ public class ItemsForm extends javax.swing.JFrame {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGap(140, 140, 140)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addGroup(jPanel2Layout.createSequentialGroup()
-                                    .addComponent(jLabel8)
-                                    .addGap(41, 41, 41)
-                                    .addComponent(txtUpdateName, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGroup(jPanel2Layout.createSequentialGroup()
-                                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel9)
-                                        .addComponent(jLabel10)
-                                        .addComponent(jLabel11))
-                                    .addGap(18, 18, 18)
-                                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(txtUpdateTax, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(txtUpdateUnitPrice, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(txtUpdateDescription, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(txtUpdatePosition, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addComponent(jLabel12))
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addComponent(jLabel7)
                                 .addGap(18, 18, 18)
-                                .addComponent(txtUpdateCode, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(txtUpdateCode, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(jLabel8)
+                                .addGap(41, 41, 41)
+                                .addComponent(txtUpdateName, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel9)
+                                    .addComponent(jLabel10)
+                                    .addComponent(jLabel11)
+                                    .addComponent(jLabel12))
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(txtUpdateDescription)
+                                    .addComponent(txtUpdateUnitPrice, javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(txtUpdateTax, javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(txtUpdatePosition, javax.swing.GroupLayout.Alignment.TRAILING))))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btnSearch))
                     .addGroup(jPanel2Layout.createSequentialGroup()
@@ -294,9 +436,19 @@ public class ItemsForm extends javax.swing.JFrame {
 
         jLabel13.setText("Item Code:");
 
-        txtDeleteCode.setNextFocusableComponent(txtAddName);
+        txtDeleteCode.setNextFocusableComponent(btnDelete);
+        txtDeleteCode.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtDeleteCodeKeyPressed(evt);
+            }
+        });
 
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -351,6 +503,36 @@ public class ItemsForm extends javax.swing.JFrame {
     private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
         clearAllFields();
     }//GEN-LAST:event_btnClearActionPerformed
+
+    private void txtDeleteCodeKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtDeleteCodeKeyPressed
+        if(evt.getKeyChar() == KeyEvent.VK_ENTER)
+        {
+            deleteItem();
+        }
+    }//GEN-LAST:event_txtDeleteCodeKeyPressed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        deleteItem();
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void txtUpdateCodeKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtUpdateCodeKeyPressed
+        if(evt.getKeyChar() == KeyEvent.VK_ENTER)
+        {
+            searchItem();
+        }
+    }//GEN-LAST:event_txtUpdateCodeKeyPressed
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        updateItem();
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
+        saveItem();
+    }//GEN-LAST:event_btnSaveActionPerformed
+
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        searchItem();
+    }//GEN-LAST:event_btnSearchActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
